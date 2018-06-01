@@ -1,7 +1,7 @@
 const jsSHA = require('jssha')
 const toastr = require('toastr')
 
-const vm = new Vue({
+window.vm = new Vue({
     el: '#app',
     data: {
         number: 50, // bet number
@@ -91,7 +91,11 @@ const vm = new Vue({
                     summ = this.random <= this.number ? this.betAmount * (this.betLoPayout - 1) : null
                 }
                 this.win = summ ? true : false
-                this.balance += summ ? Number(summ.toFixed(1)) : this.betAmount * -1
+                if (summ) {
+                    this.balance = this.correct(this.balance + summ)
+                } else {
+                    this.balance = this.correct(this.balance - this.betAmount)
+                }
                 localStorage.setItem('balance', this.balance)
                 if (this.botEnabled) {
                     this.botBetResults.push({
@@ -110,11 +114,13 @@ const vm = new Vue({
                         }, 500)
                         return
                     }
-                    console.log(this.botBetResults)
                 }
                 this.random = Math.round(Math.random() * 99) + 1
                 this.inProcess = false
             })
+        },
+        correct(n) {
+            return Math.round(n * 10) / 10
         }
     }
 })
