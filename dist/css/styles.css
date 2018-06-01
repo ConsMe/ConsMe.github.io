@@ -1,0 +1,32 @@
+html {
+    font-size:18px;
+}
+
+.bet-input {
+    width:130px;
+    font-size:40px;
+}
+
+button:disabled {
+    cursor: not-allowed;
+ }
+
+ .num-block {
+    overflow: hidden;     
+ }
+
+ .win-animate {
+     position: absolute;
+     top: 0;
+     left: 0;
+     width: 100%;
+     text-align: center;
+ }
+
+ .win-animate > span {
+     display: block;
+ }
+
+ [v-cloak] {
+    display: none;
+  }
