@@ -1,4 +1,5 @@
 const jsSHA = require('jssha')
+const toastr = require('toastr')
 
 const vm = new Vue({
     el: '#app',
@@ -11,6 +12,9 @@ const vm = new Vue({
         inProcess: false, // true if player pressed BetLo or BetHi button and waits for result
         win: null, // win or loose on last bet,
         justOpen: true, // webpage is just opened and there were not bets yet
+        botEnabled: false, 
+        timesRepeat: '', // how many times bot will repeat bet
+        botBetResults: [], // results of automatic bets
     },
     computed: {
         hash() { // create hash from random
@@ -61,9 +65,17 @@ const vm = new Vue({
             this.balance += 100
             localStorage.setItem('balance', this.balance)
         },
-        makeBet(direction) {
+        makeBet(direction, repeat) {
             if (this.inProcess) return
             this.inProcess = true
+            if (this.botEnabled && (this.timesRepeat == 0 || this.timesRepeat != parseInt(this.timesRepeat))) {
+                this.inProcess = false
+                toastr.warning('Please input correct times repeat')
+                return
+            } 
+            if (!repeat) {
+                this.botBetResults = []
+            }
             this.justOpen = false
             this.win = null
             let el = $('.win-animate')
@@ -72,7 +84,6 @@ const vm = new Vue({
             $(el).animate({top: height}, 1000, () => {
                 Vue.set(this.numbersForAnimate, 0, this.random)
                 $(el).css('top', 0)
-                this.inProcess = false
                 let summ = null
                 if (direction == 'Hi') {
                     summ = this.random >= this.number ? this.betAmount * (this.betHiPayout - 1) : null
@@ -82,7 +93,26 @@ const vm = new Vue({
                 this.win = summ ? true : false
                 this.balance += summ ? summ : this.betAmount * -1
                 localStorage.setItem('balance', this.balance)
-                this.random = Math.round(Math.random() * 99) + 1
+                if (this.botEnabled) {
+                    this.botBetResults.push({
+                        res: this.win,
+                        balance: this.balance,
+                        number: this.number,
+                        hash: this.hash,
+                        amount: this.betAmount 
+                    })
+                    this.timesRepeat--
+                    this.random = Math.round(Math.random() * 99) + 1
+                    if (this.timesRepeat > 0 && this.betAmount <= this.balance) {
+                        setTimeout(() => {
+                            this.inProcess = false
+                            this.makeBet(direction, true)
+                        }, 500)
+                        return
+                    }
+                    console.log(this.botBetResults)
+                }
+                this.inProcess = false
             })
         }
     }

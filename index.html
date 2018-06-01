@@ -8,6 +8,7 @@
     <link rel="icon" type="image/png" href="dist/img/ico.png" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.1.1/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Alegreya">
+    <link rel="stylesheet"  href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
     <link rel="stylesheet" href="dist/css/styles.css">
 </head>
 
@@ -63,7 +64,7 @@
                             </label>
                         </div>
                         <div class="col-12 col-sm-auto d-flex justify-content-center">
-                            <input type="text" v-model="betAmount" class="text-center form-control bet-input" :class="{'is-invalid': !validateBetAmount}">
+                            <input type="text" v-model="betAmount" class="text-center form-control bet-input" :class="{'is-invalid': !validateBetAmount}" :disabled="inProcess" />
                         </div>
                     </div>
                 </div>
@@ -73,7 +74,7 @@
                             <label class="col-form-label d-inline-flex align-items-center h-100" style="font-size:25px;">Number</label>
                         </div>
                         <div class="col d-flex justify-content-center justify-content-md-start">
-                            <input type="text" v-model="number" class="text-center form-control bet-input" :class="{'is-invalid': !validateNumber}" >
+                            <input type="text" v-model="number" class="text-center form-control bet-input" :class="{'is-invalid': !validateNumber}" :disabled="inProcess" />
                         </div>
                     </div>
                 </div>
@@ -111,7 +112,18 @@
                     </ul>
                 </div>
             </div>
-            <div class="row mt-5" :style="{visibility: justOpen ? 'hidden' : 'visible'}">
+            <div class="row mt-3">
+                <div class="col-12 col-sm-10 col-md-6 offset-sm-1 offset-md-3">
+                    <p class="d-inline-flex custom-control custom-checkbox h5">
+                        <input type="checkbox" id="bot" class="custom-control-input" v-model="botEnabled" :disabled="inProcess"/>
+                        <label for="bot" class="d-inline-flex custom-control-label pl-2">
+                            Repeat my bet
+                        </label>
+                    </p>
+                    <input type="text" class="d-inline-flex text-center ml-2 mr-2 form-control pl-0 pr-0" style="width:3rem; font-size: 1.2rem" :disabled="!botEnabled || inProcess" v-model="timesRepeat"/>
+                    <span class="h5">times</span></div>
+            </div>
+            <div class="row mt-4" :style="{visibility: justOpen ? 'hidden' : 'visible'}">
                 <div class="col-sm-12 col-md-8 offset-md-2">
                     <div class="row">
                         <div class="col-sm-12 col-md-5">
@@ -125,13 +137,44 @@
                         </div>
                         <div class="col-sm-12 col-md-5">
                             <span class="d-flex justify-content-center justify-content-md-start h1" 
-                                :class="[win ? 'text-success' : 'text-danger']">
-                                    {{ win === null ? '' : win ? 'WIN!!!' : 'Loose' }}
+                                :class="[win ? 'text-success' : 'text-danger']"
+                                    v-html="win === null ? '&nbsp;' : win ? 'WIN!!!' : 'Loose'">
                             </span>
                         </div>
                     </div>
                 </div>
             </div>
+            <div class="row mt-4" v-if="botBetResults.length">
+                    <div class="col-12 col-md-10 offset-md-1">
+                        <h3 class="text-center">Bot bet results</h3>
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th width="5%">#</th>
+                                    <th width="10%">number</th>
+                                    <th width="10%">Amount</th>
+                                    <th width="45%">Hash</th>
+                                    <th width="15%">Result</th>
+                                    <th width="15%">Balance</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr v-for="res, i in botBetResults" :key="res.hash">
+                                    <td>{{ i + 1 }}</td>
+                                    <td>{{ res.number }}</td>
+                                    <td>{{ res.amount }}</td>
+                                    <td style="display: grid">
+                                        <span class="text-truncate" :title="res.hash">{{ res.hash }}</span>
+                                    </td>
+                                    <td :class="[res.res ? 'text-success' : 'text-danger']">
+                                        {{ res.res ? 'WIN' : 'Loose' }}
+                                    </td>
+                                    <td>{{ res.balance }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
         </div>
     </section>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
