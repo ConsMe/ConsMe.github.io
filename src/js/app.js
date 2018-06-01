@@ -91,7 +91,7 @@ const vm = new Vue({
                     summ = this.random <= this.number ? this.betAmount * (this.betLoPayout - 1) : null
                 }
                 this.win = summ ? true : false
-                this.balance += summ ? summ : this.betAmount * -1
+                this.balance += summ ? Number(summ.toFixed(1)) : this.betAmount * -1
                 localStorage.setItem('balance', this.balance)
                 if (this.botEnabled) {
                     this.botBetResults.push({
