@@ -1,1 +1,1 @@
-# finish
+Dice game
