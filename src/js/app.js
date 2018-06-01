@@ -102,16 +102,17 @@ const vm = new Vue({
                         amount: this.betAmount 
                     })
                     this.timesRepeat--
-                    this.random = Math.round(Math.random() * 99) + 1
                     if (this.timesRepeat > 0 && this.betAmount <= this.balance) {
                         setTimeout(() => {
                             this.inProcess = false
+                            this.random = Math.round(Math.random() * 99) + 1
                             this.makeBet(direction, true)
                         }, 500)
                         return
                     }
                     console.log(this.botBetResults)
                 }
+                this.random = Math.round(Math.random() * 99) + 1
                 this.inProcess = false
             })
         }
