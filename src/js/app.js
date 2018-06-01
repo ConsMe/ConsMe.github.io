@@ -1,7 +1,7 @@
 const jsSHA = require('jssha')
 const toastr = require('toastr')
 
-window.vm = new Vue({
+const vm = new Vue({
     el: '#app',
     data: {
         number: 50, // bet number
@@ -15,6 +15,8 @@ window.vm = new Vue({
         botEnabled: false, 
         timesRepeat: '', // how many times bot will repeat bet
         botBetResults: [], // results of automatic bets
+        MartingaleEnabled: false, // use Martingale Strategy
+        MartingaleTimes: '', // how many times Martingale Strategy will repeat bet
     },
     computed: {
         hash() { // create hash from random
@@ -54,6 +56,18 @@ window.vm = new Vue({
             return '&nbsp;'
         }
     },
+    watch: {
+        botEnabled(newV) {
+            if (newV) {
+                this.MartingaleEnabled = false
+            }
+        },
+        MartingaleEnabled(newV) {
+            if (newV) {
+                this.botEnabled = false
+            }
+        }
+    },
     mounted() { // get saved player`s balance
         this.balance = localStorage.getItem('balance') ? Number(localStorage.getItem('balance')) : 0
         localStorage.setItem('balance', this.balance)
@@ -68,14 +82,12 @@ window.vm = new Vue({
         makeBet(direction, repeat) {
             if (this.inProcess) return
             this.inProcess = true
-            if (this.botEnabled && (this.timesRepeat == 0 || this.timesRepeat != parseInt(this.timesRepeat))) {
-                this.inProcess = false
-                toastr.warning('Please input correct times repeat')
+            let isBot = this.botEnabled || this.MartingaleEnabled
+            if (isBot && !this.checkBotParams(repeat)) {
                 return
-            } 
-            if (!repeat) {
-                this.botBetResults = []
             }
+            this.botBetResults = !repeat ? [] : this.botBetResults
+            direction = this.MartingaleEnabled ? 'Hi' : direction
             this.justOpen = false
             this.win = null
             let el = $('.win-animate')
@@ -90,14 +102,15 @@ window.vm = new Vue({
                 } else {
                     summ = this.random <= this.number ? this.betAmount * (this.betLoPayout - 1) : null
                 }
-                this.win = summ ? true : false
+                this.win = !!summ
                 if (summ) {
                     this.balance = this.correct(this.balance + summ)
                 } else {
                     this.balance = this.correct(this.balance - this.betAmount)
                 }
                 localStorage.setItem('balance', this.balance)
-                if (this.botEnabled) {
+
+                if (isBot) {
                     this.botBetResults.push({
                         res: this.win,
                         balance: this.balance,
@@ -105,8 +118,10 @@ window.vm = new Vue({
                         hash: this.hash,
                         amount: this.betAmount 
                     })
-                    this.timesRepeat--
-                    if (this.timesRepeat > 0 && this.betAmount <= this.balance) {
+                    let counter = this.botEnabled ? 'timesRepeat' : 'MartingaleTimes'
+                    this[counter]--
+                    this.betAmount = this.MartingaleEnabled && !this.win ? this.betAmount * 2 : this.betAmount
+                    if (this[counter] > 0 && this.betAmount <= this.balance) {
                         setTimeout(() => {
                             this.inProcess = false
                             this.random = Math.round(Math.random() * 99) + 1
@@ -118,6 +133,27 @@ window.vm = new Vue({
                 this.random = Math.round(Math.random() * 99) + 1
                 this.inProcess = false
             })
+        },
+        checkBotParams(repeat) {
+            if (this.botEnabled) {
+                if (this.timesRepeat == 0 || this.timesRepeat != parseInt(this.timesRepeat)) {
+                    this.inProcess = false
+                    toastr.warning('Please input correct times repeat')
+                    return false
+                }
+            } else {
+                if (!repeat) {
+                    this.balance = 100
+                    this.MartingaleTimes = 10
+                    this.betAmount = 20
+                    this.number = 50
+                }
+                if (this.MartingaleTimes == 0) {
+                    this.inProcess = false
+                    return false
+                }
+            }
+            return true
         },
         correct(n) {
             return Math.round(n * 10) / 10

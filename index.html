@@ -121,7 +121,18 @@
                         </label>
                     </p>
                     <input type="text" class="d-inline-flex text-center ml-2 mr-2 form-control pl-0 pr-0" style="width:3rem; font-size: 1.2rem" :disabled="!botEnabled || inProcess" v-model="timesRepeat"/>
-                    <span class="h5">times</span></div>
+                    <span class="h5">times</span>
+                </div>
+            </div>
+            <div class="row mt-2">
+                <div class="col-12 col-sm-10 col-md-6 offset-sm-1 offset-md-3">
+                    <p class="d-inline-flex custom-control custom-checkbox h5">
+                        <input type="checkbox" id="Martingale" class="custom-control-input" v-model="MartingaleEnabled" :disabled="inProcess"/>
+                        <label for="Martingale" class="d-inline-flex custom-control-label pl-2">
+                            Use Martingale Strategy
+                        </label>
+                    </p>
+                </div>
             </div>
             <div class="row mt-4" :style="{visibility: justOpen ? 'hidden' : 'visible'}">
                 <div class="col-sm-12 col-md-8 offset-md-2">
